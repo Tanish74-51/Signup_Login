@@ -19,16 +19,6 @@ def main():
 
 
 
-
-
-
-
-
-
-
-
-
-
 def signup():
     print('SignUp')
     email = valid_email()
