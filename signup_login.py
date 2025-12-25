@@ -6,6 +6,8 @@ try:
 except (FileNotFoundError, json.JSONDecodeError):
     data = []
 
+
+
 def main():
     print('Sign up : 1, Log in : 2')
     choice=input('Enter your choice: ')
@@ -13,21 +15,21 @@ def main():
         signup()
     elif choice=='2':
         login()
-
     else:
         print('Invalid choice')
 
 
 
+
 def signup():
     print('SignUp')
-    email = valid_email()
-    username = valid_username()
-    password = valid_password()
+    email=valid_email()
+    username=valid_username()
+    password=valid_password()
     while True:
-        password_test = input("Enter password again: ")
-        if password == password_test:
-            data.append({'email': email, 'username': username, 'password': password})
+        password_test=input("Enter password again: ")
+        if password==password_test:
+            data.append({'email':email,'username':username,'password':password})
             break
         else:
             print('''Password not matched
@@ -36,30 +38,28 @@ def signup():
     with open('data.json', 'w') as f:
         json.dump(data, f, indent=4)
 
-    print('Signed in')
+    print('Registered')
 
 def login():
     print('Login')
     while True:
         try:
-            username_inp = input('Username: ')
+            username_inp=input('Username: ')
             for dic in data:
-                if dic['username'] == username_inp:
-                    password_inp = input('Password: ')
-                    if password_inp == dic['password']:
-                        print('ACCESS ALLOWED')
-                        break
-                    else:
-                        raise ValueError('Invalid password')
+                if dic['username']!=username_inp:
+                    continue
+                password_inp=input('Password: ')
+                if not password_inp==dic['password']:
+                    raise ValueError('Invalid password')
+                else:
+                    print('ACCESS ALLOWED')
+                    break
             else:
                 raise ValueError('User does not exist')
             break
         except ValueError as e:
             print(e)
             continue
-
-
-
 
 def valid_password():
     while True:
@@ -83,8 +83,8 @@ def valid_password():
 
 def valid_username():
     while True:
-        problems = []
-        name = input('Create username: ')
+        problems=[]
+        name=input('Create username: ')
         if any(name==dic['username'] for dic in data):
             print('Username already taken')
             continue
@@ -142,7 +142,7 @@ def valid_email():
     ]
     while True:
         try:
-            email = input('Enter your email: ')
+            email=input('Enter your email: ')
             if email.count('@')!=1:
                 raise ValueError
             name,domain=email.split('@')
