@@ -18,3 +18,4 @@ Hello folks, here I present a python project that implements basic sign-up and l
 - Log-in
   - Requires registered username and password
   - Displays **“ACCESS ALLOWED”** on successful authentication
+- “Forgot Password” feature with local OTP generation in the CLI (can be replaced with an API-based OTP service).
