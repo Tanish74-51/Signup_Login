@@ -4,9 +4,9 @@ import random
 
 try:
     with open('data.json', 'r') as f:
-        data = json.load(f)
+        data=json.load(f)
 except (FileNotFoundError, json.JSONDecodeError):
-    data = []
+    data=[]
 
 
 
@@ -22,7 +22,6 @@ def main():
 
 
 
-
 def signup():
     print('SignUp')
     email=valid_email()
@@ -31,65 +30,40 @@ def signup():
     while True:
         password_test=input("Enter password again: ")
         if password==password_test:
-            data.append({'email':email,'username':username,'password':password})
+            data.append({'email':email,
+                         'username':username,
+                         'password':password})
             break
         else:
-            print('''Password not matched
-    Try again''')
-
-    with open('data.json', 'w') as f:
-        json.dump(data, f, indent=4)
+            print('Password not matched\nTry again')
     print('Registered')
+
+    data_save()
 
 def login():
     print('Login')
     while True:
-        try:
-            username_inp = input('Username: ')
-            for dic in data:
-                if dic['username'] != username_inp:
-                    continue
-                print('Forgot password? press 1')
-                password_inp = input('Password: ')
-                if password_inp == '1':
-                    reset_password(dic)
-                    break
-                else:
-                    if not password_inp == dic['password']:
-                        raise ValueError('Invalid password')
-                    else:
-                        print('ACCESS ALLOWED')
-                        break
+        username_inp=input('Username: ')
+        for dic in data:
+            if dic['username']!=username_inp:
+                continue
+            print('Forgot password? press 1')
+            password_inp = input('Password: ')
+            if password_inp == '1':
+                reset_password(dic)
+                break
+            elif password_inp!=dic['password']:
+                print('Invalid password')
+                break
             else:
-                raise ValueError('User does not exist')
-            break
-        except ValueError as e:
-            print(e)
-            continue
-
-    with open('data.json', 'w') as f:
-        json.dump(data, f, indent=4)
-
-
-def valid_password():
-    while True:
-        problems=[]
-        code=input('Create password: ')
-        if len(code)!=8:
-            problems.append('8 characters')
-        if not any(ch.isalpha() for ch in code):
-            problems.append('Alphabets')
-        if not any(ch.isupper() for ch in code):
-            problems.append('Uppercase alphabets')
-        if not any(ch.isdigit() for ch in code):
-            problems.append('Digits')
-        if not any(ch in '!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~' for ch in code):
-            problems.append('Special characters')
-        if problems:
-            print('Password must have '+', '.join(problems))
-            continue
+                print('ACCESS ALLOWED')
+                break
         else:
-            return code
+            print('User does not exist')
+            continue
+        break
+
+    data_save()
 
 def valid_username():
     while True:
@@ -111,6 +85,26 @@ def valid_username():
             continue
         else:
             return name
+
+def valid_password():
+    while True:
+        problems=[]
+        code=input('Create password: ')
+        if len(code)!=8:
+            problems.append('8 characters')
+        if not any(ch.isalpha() for ch in code):
+            problems.append('Alphabets')
+        if not any(ch.isupper() for ch in code):
+            problems.append('Uppercase alphabets')
+        if not any(ch.isdigit() for ch in code):
+            problems.append('Digits')
+        if not any(ch in '!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~' for ch in code):
+            problems.append('Special characters')
+        if problems:
+            print('Password must have '+', '.join(problems))
+            continue
+        else:
+            return code
 
 def valid_email():
     domains=[
@@ -151,65 +145,32 @@ def valid_email():
         "chitkara"
     ]
     while True:
-        try:
-            email=input('Enter your email: ')
-            if any(email == dic['email'] for dic in data):
-                print('Email already registered')
-                continue
-            if email.count('@')!=1:
-                raise ValueError
-            name,domain=email.split('@')
-            if not name:
-                raise ValueError
-            if '.' not in domain or domain.count('.')>2:
-                raise ValueError
-            domain= domain.split('.')
-            if len(domain)==2:
-                if domain[0] in email_providers and domain[1] in domains:
-                    return email
-                else:
-                    raise ValueError
-            elif len(domain)==3:
-                if domain[0] in email_providers and '.'.join(domain[1:3]) in domains:
-                    return email
-                else:
-                    raise ValueError
-        except ValueError:
+
+        email=input('Enter your email: ')
+        if any(email == dic['email'] for dic in data):
+            print('Email already registered')
+            continue
+        if email.count('@')!=1:
             print('Invalid email')
             continue
-
-def otp_check(dic):
-    while True:
-        print(f'OTP sent on {dic["email"]}')
-        otp=random.randint(999, 9999)
-        print(f'OTP: {otp}')
-        time_start=time.time()
-        print('OTP expires in 10 seconds')
-        attempt=0
-        while attempt<3:
-            time_end=time.time()
-            if not (time_start+10)<=time_end:
-                try:
-                    otp_test=int(input('Enter OTP: '))
-                    if otp_test==otp:
-                        return True
-                    else:
-                        attempt+=1
-                        print('Incorrect OTP')
-                        continue
-                except ValueError:
-                    print('Incorrect input')
-            else:
-                print('''OTP expired
-Try again''')
-                break
-        else:
-            print('Too many incorrect OTP attempts')
-        restart=input('Resend OTP? [y/n]: ')
-        if restart=='y':
+        name,domain=email.split('@')
+        if not name:
+            print('Invalid email')
             continue
-        else:
-            return False
+        if '.' not in domain:
+            print('Invalid email')
+            continue
+        domain=domain.split('.')
+        if len(domain)==2:
+            if domain[0] in email_providers and domain[1] in domains:
+                return email
+            else:
+                continue
+        elif len(domain)==3:
+            if domain[0] in email_providers and '.'.join(domain[1:3]) in domains:
+                return email
+            else:
+                continue
 
 def reset_password(dic):
     if otp_check(dic):
@@ -221,11 +182,48 @@ def reset_password(dic):
                 print('Password reset successfully')
                 break
             else:
-                print('''Passwords not matched
-Please try again''')
+                print('Passwords not matched\nPlease try again')
                 continue
 
-main()
+def otp_check(dic):
+    while True:
+        print(f'OTP sent on {dic["email"]}')
+        otp=random.randint(1000, 9999)
+        print(f'OTP: {otp}')
+        time_start=time.time()
+        print('OTP expires in 10 seconds')
+        attempt=0
+        while attempt<3:
+            time_end=time.time()
+            if time_end>time_start+10:
+                print('OTP expired\nTry again')
+                break
+            try:
+                otp_test=int(input('Enter OTP: '))
+                if otp_test==otp:
+                    return True
+                else:
+                    attempt+=1
+                    print('Incorrect OTP')
+                    continue
+            except ValueError:
+                attempt+=1
+                print('Incorrect input')
+        else:
+            print('Too many incorrect OTP attempts')
+
+        restart=input('Resend OTP? [y/n]: ')
+        if restart=='y':
+            continue
+        else:
+            return False
+
+def data_save():
+    with open('data.json', 'w') as f:
+        json.dump(data, f, indent=4)
+
+if __name__ == "__main__":
+        main()
 
 
 
