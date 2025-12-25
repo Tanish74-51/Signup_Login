@@ -1,4 +1,6 @@
 import json
+import time
+import random
 
 try:
     with open('data.json', 'r') as f:
@@ -37,29 +39,37 @@ def signup():
 
     with open('data.json', 'w') as f:
         json.dump(data, f, indent=4)
-
     print('Registered')
 
 def login():
     print('Login')
     while True:
         try:
-            username_inp=input('Username: ')
+            username_inp = input('Username: ')
             for dic in data:
-                if dic['username']!=username_inp:
+                if dic['username'] != username_inp:
                     continue
-                password_inp=input('Password: ')
-                if not password_inp==dic['password']:
-                    raise ValueError('Invalid password')
-                else:
-                    print('ACCESS ALLOWED')
+                print('Forgot password? press 1')
+                password_inp = input('Password: ')
+                if password_inp == '1':
+                    reset_password(dic)
                     break
+                else:
+                    if not password_inp == dic['password']:
+                        raise ValueError('Invalid password')
+                    else:
+                        print('ACCESS ALLOWED')
+                        break
             else:
                 raise ValueError('User does not exist')
             break
         except ValueError as e:
             print(e)
             continue
+
+    with open('data.json', 'w') as f:
+        json.dump(data, f, indent=4)
+
 
 def valid_password():
     while True:
@@ -143,6 +153,9 @@ def valid_email():
     while True:
         try:
             email=input('Enter your email: ')
+            if any(email == dic['email'] for dic in data):
+                print('Email already registered')
+                continue
             if email.count('@')!=1:
                 raise ValueError
             name,domain=email.split('@')
@@ -165,8 +178,52 @@ def valid_email():
             print('Invalid email')
             continue
 
+def otp_check(dic):
+    while True:
+        print(f'OTP sent on {dic["email"]}')
+        otp=random.randint(999, 9999)
+        print(f'OTP: {otp}')
+        time_start=time.time()
+        print('OTP expires in 10 seconds')
+        attempt=0
+        while attempt<3:
+            time_end=time.time()
+            if not (time_start+10)<=time_end:
+                try:
+                    otp_test=int(input('Enter OTP: '))
+                    if otp_test==otp:
+                        return True
+                    else:
+                        attempt+=1
+                        print('Incorrect OTP')
+                        continue
+                except ValueError:
+                    print('Incorrect input')
+            else:
+                print('''OTP expired
+Try again''')
+                break
+        else:
+            print('Too many incorrect OTP attempts')
+        restart=input('Resend OTP? [y/n]: ')
+        if restart=='y':
+            continue
+        else:
+            return False
 
-
+def reset_password(dic):
+    if otp_check(dic):
+        while True:
+            new_password=valid_password()
+            new_password_test=input('Enter password again: ')
+            if new_password_test==new_password:
+                dic['password']=new_password
+                print('Password reset successfully')
+                break
+            else:
+                print('''Passwords not matched
+Please try again''')
+                continue
 
 main()
 
