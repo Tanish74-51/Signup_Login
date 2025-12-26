@@ -43,17 +43,20 @@ def signup():
 def login():
     print('Login')
     while True:
-        username_inp=input('Username: ')
+        check = False
+        username_inp = input('Username: ')
         for dic in data:
-            if dic['username']!=username_inp:
+            if dic['username'] != username_inp:
                 continue
             print('Forgot password? press 1')
             password_inp = input('Password: ')
             if password_inp == '1':
                 reset_password(dic)
+                check=True
                 break
-            elif password_inp!=dic['password']:
+            elif password_inp != dic['password']:
                 print('Invalid password')
+                check = True
                 break
             else:
                 print('ACCESS ALLOWED')
@@ -61,7 +64,11 @@ def login():
         else:
             print('User does not exist')
             continue
-        break
+        if check:
+            continue
+        else:
+            break
+
 
     data_save()
 
