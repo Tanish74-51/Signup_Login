@@ -11,14 +11,15 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 
 def main():
-    print('Sign up : 1, Log in : 2')
-    choice=input('Enter your choice: ')
-    if choice=='1':
-        signup()
-    elif choice=='2':
-        login()
-    else:
-        print('Invalid choice')
+    while True:
+        print('Sign up : 1, Log in : 2')
+        choice=input('Enter your choice: ').strip()
+        if choice=='1':
+            signup()
+        elif choice=='2':
+            login()
+        else:
+            print('Invalid choice')
 
 
 
@@ -28,7 +29,7 @@ def signup():
     username=valid_username()
     password=valid_password()
     while True:
-        password_test=input("Enter password again: ")
+        password_test=input("Enter password again: ").strip()
         if password==password_test:
             data.append({'email':email,
                          'username':username,
@@ -40,45 +41,45 @@ def signup():
 
     data_save()
 
+    return
+
 def login():
-    print('Login')
     while True:
-        check = False
-        username_inp = input('Username: ')
+        print('Login')
+        username_inp = input('Username: ').strip()
         for dic in data:
             if dic['username'] != username_inp:
                 continue
-            print('Forgot password? press 1')
-            password_inp = input('Password: ')
-            if password_inp == '1':
-                reset_password(dic)
-                check=True
-                break
-            elif password_inp != dic['password']:
-                print('Invalid password')
-                check = True
-                break
-            else:
-                print('ACCESS ALLOWED')
-                break
+            password_check(dic)
+            break
         else:
             print('User does not exist')
             continue
-        if check:
+
+def password_check(dic):
+    while True:
+        print('Forgot password? press 1')
+        password_inp = input('Password: ')
+        if password_inp == '1':
+            reset_password(dic)
+            return
+        elif password_inp != dic['password']:
+            print('Invalid password')
             continue
         else:
-            break
-
-
-    data_save()
+            print('ACCESS ALLOWED')
+            logged_in(dic)
+            return
 
 def valid_username():
     while True:
         problems=[]
-        name=input('Create username: ')
+        name=input('Create username: ').strip()
         if any(name==dic['username'] for dic in data):
             print('Username already taken')
             continue
+        if ' ' in name:
+            problems.append('not contain spaces')
         if not 4<=len(name)<=8:
             problems.append('4 to 8 characters')
         if not any(ch.isalpha() for ch in name):
@@ -96,9 +97,11 @@ def valid_username():
 def valid_password():
     while True:
         problems=[]
-        code=input('Create password: ')
+        code=input('Create password: ').strip()
         if len(code)!=8:
             problems.append('8 characters')
+        if ' ' in code:
+            problems.append('not contain spaces')
         if not any(ch.isalpha() for ch in code):
             problems.append('Alphabets')
         if not any(ch.isupper() for ch in code):
@@ -153,9 +156,12 @@ def valid_email():
     ]
     while True:
 
-        email=input('Enter your email: ')
+        email=input('Enter your email: ').strip()
         if any(email == dic['email'] for dic in data):
             print('Email already registered')
+            continue
+        if ' ' in email:
+            print('Invalid email')
             continue
         if email.count('@')!=1:
             print('Invalid email')
@@ -183,7 +189,7 @@ def reset_password(dic):
     if otp_check(dic):
         while True:
             new_password=valid_password()
-            new_password_test=input('Enter password again: ')
+            new_password_test=input('Enter password again: ').strip()
             if new_password_test==new_password:
                 dic['password']=new_password
                 print('Password reset successfully')
@@ -191,6 +197,8 @@ def reset_password(dic):
             else:
                 print('Passwords not matched\nPlease try again')
                 continue
+
+    data_save()
 
 def otp_check(dic):
     while True:
@@ -224,6 +232,36 @@ def otp_check(dic):
             continue
         else:
             return False
+
+def logged_in(dic):
+    while True:
+        print('''====== ACCOUNT INFO ======''')
+        print('Delete account: 1\nLog out: 2')
+        choice=input('Enter your choice: ').strip()
+        if choice=='1':
+            delete_acc(dic)
+            break
+        elif choice=='2':
+            return
+        else:
+            print('Invalid choice')
+            continue
+
+def delete_acc(dic):
+    print('Do you really wanna your Delete account? [y/n]: ')
+    choice=input('Enter your choice: ').strip().lower()
+    if choice=='y':
+        while True:
+            password=input('Enter your password: ').strip()
+            if password==dic['password']:
+                data.remove(dic)
+                data_save()
+                print('Account delete successfully')
+                break
+            else:
+                print('Incorrect password')
+    else:
+        return
 
 def data_save():
     with open('data.json', 'w') as f:
