@@ -46,12 +46,12 @@ def signup():
 def login():
     while True:
         print('Login')
-        username_inp = input('Username: ').strip()
+        username_inp=input('Username: ').strip()
         for dic in data:
-            if dic['username'] != username_inp:
+            if dic['username']!=username_inp:
                 continue
             password_check(dic)
-            break
+            return
         else:
             print('User does not exist')
             continue
@@ -60,10 +60,10 @@ def password_check(dic):
     while True:
         print('Forgot password? press 1')
         password_inp = input('Password: ')
-        if password_inp == '1':
+        if password_inp=='1':
             reset_password(dic)
             return
-        elif password_inp != dic['password']:
+        elif password_inp!=dic['password']:
             print('Invalid password')
             continue
         else:
@@ -186,52 +186,58 @@ def valid_email():
                 continue
 
 def reset_password(dic):
-    if otp_check(dic):
+    if otp_system(dic):
         while True:
             new_password=valid_password()
             new_password_test=input('Enter password again: ').strip()
             if new_password_test==new_password:
                 dic['password']=new_password
                 print('Password reset successfully')
-                break
+                return
             else:
                 print('Passwords not matched\nPlease try again')
                 continue
 
     data_save()
 
-def otp_check(dic):
+def otp_system(dic):
     while True:
         print(f'OTP sent on {dic["email"]}')
-        otp=random.randint(1000, 9999)
-        print(f'OTP: {otp}')
-        time_start=time.time()
-        print('OTP expires in 10 seconds')
-        attempt=0
-        while attempt<3:
-            time_end=time.time()
-            if time_end>time_start+10:
-                print('OTP expired\nTry again')
-                break
-            try:
-                otp_test=int(input('Enter OTP: '))
-                if otp_test==otp:
-                    return True
-                else:
-                    attempt+=1
-                    print('Incorrect OTP')
-                    continue
-            except ValueError:
-                attempt+=1
-                print('Incorrect input')
-        else:
-            print('Too many incorrect OTP attempts')
+        otp=generate_otp()
+        if otp_check(otp):
+            return True
 
         restart=input('Resend OTP? [y/n]: ')
-        if restart=='y':
+        if restart == 'y':
             continue
         else:
             return False
+
+def generate_otp():
+    otp=random.randint(1000, 9999)
+    print(f'OTP: {otp}')
+    return otp
+
+def otp_check(otp):
+    time_start=time.time()
+    for _ in range(3):
+        try:
+            otp_test=int(input('Enter OTP: '))
+            time_end=time.time()
+            if time_end>time_start+10:
+                print('otp expired\nTry again')
+                return False
+            if otp_test==otp:
+                print('OTP verified')
+                return True
+            else:
+                print('Incorrect OTP')
+                continue
+        except ValueError:
+            print('Incorrect input')
+    else:
+        print('Too many incorrect OTP attempts')
+        return False
 
 def logged_in(dic):
     while True:
@@ -239,8 +245,10 @@ def logged_in(dic):
         print('Delete account: 1\nLog out: 2')
         choice=input('Enter your choice: ').strip()
         if choice=='1':
-            delete_acc(dic)
-            break
+            if delete_acc(dic):
+                return
+            else:
+                continue
         elif choice=='2':
             return
         else:
@@ -257,7 +265,7 @@ def delete_acc(dic):
                 data.remove(dic)
                 data_save()
                 print('Account delete successfully')
-                break
+                return True
             else:
                 print('Incorrect password')
     else:
