@@ -30,13 +30,15 @@ def signup():
     password=valid_password()
     while True:
         password_test=input("Enter password again: ").strip()
-        if password==password_test:
-            data.append({'email':email,
-                         'username':username,
-                         'password':password})
-            break
-        else:
+        if password!=password_test:
             print('Password not matched\nTry again')
+            continue
+        else:
+            data.append({'email': email,
+                         'username': username,
+                         'password': password})
+            break
+
     print('Registered')
 
     data_save()
@@ -190,13 +192,13 @@ def reset_password(dic):
         while True:
             new_password=valid_password()
             new_password_test=input('Enter password again: ').strip()
-            if new_password_test==new_password:
-                dic['password']=new_password
-                print('Password reset successfully')
-                return
-            else:
+            if new_password_test!=new_password:
                 print('Passwords not matched\nPlease try again')
                 continue
+            else:
+                dic['password'] = new_password
+                print('Password reset successfully')
+                break
 
     data_save()
 
