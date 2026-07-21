@@ -1,6 +1,8 @@
 import json
 import time
 import random
+import hashlib
+import re
 
 try:
     with open('data.json', 'r') as f:
@@ -34,9 +36,9 @@ def signup():
             print('Password not matched\nTry again')
             continue
         else:
-            data.append({'email': email,
-                         'username': username,
-                         'password': password})
+            data.append({'email':email,
+                         'username':username,
+                         'password':hash_password(password)})
             break
 
     print('Registered')
@@ -65,7 +67,7 @@ def password_check(dic):
         if password_inp=='1':
             reset_password(dic)
             return
-        elif password_inp!=dic['password']:
+        elif hash_password(password_inp)!=dic['password']:
             print('Invalid password')
             continue
         else:
@@ -119,73 +121,20 @@ def valid_password():
             return code
 
 def valid_email():
-    domains=[
-        "com",
-        "net",
-        "org",
-        "edu",
-        "gov",
-        "in",
-        "uk",
-        "us",
-        "ca",
-        "au",
-        "co.in",
-        "ac.in",
-        "gov.in",
-        "dev",
-        "io",
-        "tech",
-        "ai",
-        "app",
-        "store",
-    ]
-    email_providers=[
-        "gmail",
-        "googlemail",
-        "yahoo",
-        "outlook",
-        "hotmail",
-        "live",
-        "icloud",
-        "aol",
-        "protonmail",
-        "zoho",
-        "yandex",
-        "mail",
-        "gmx",
-        "chitkara"
-    ]
     while True:
-
         email=input('Enter your email: ').strip()
         if any(email == dic['email'] for dic in data):
             print('Email already registered')
             continue
-        if ' ' in email:
-            print('Invalid email')
-            continue
-        if email.count('@')!=1:
-            print('Invalid email')
-            continue
-        name,domain=email.split('@')
-        if not name:
-            print('Invalid email')
-            continue
-        if '.' not in domain:
-            print('Invalid email')
-            continue
-        domain=domain.split('.')
-        if len(domain)==2:
-            if domain[0] in email_providers and domain[1] in domains:
-                return email
-            else:
-                continue
-        elif len(domain)==3:
-            if domain[0] in email_providers and '.'.join(domain[1:3]) in domains:
-                return email
-            else:
-                continue
+
+        pattern_check=re.fullmatch(r'[a-zA-Z0-9_.]+@([a-zA-z]+\.)+[a-zA-z]{2,}',email)
+
+        if pattern_check:
+            return email
+        else:
+            print('invalid email')
+
+
 
 def reset_password(dic):
     if otp_system(dic):
@@ -196,7 +145,7 @@ def reset_password(dic):
                 print('Passwords not matched\nPlease try again')
                 continue
             else:
-                dic['password'] = new_password
+                dic['password']=hash_password(new_password)
                 print('Password reset successfully')
                 break
 
@@ -263,7 +212,7 @@ def delete_acc(dic):
     if choice=='y':
         while True:
             password=input('Enter your password: ').strip()
-            if password==dic['password']:
+            if hash_password(password)==dic['password']:
                 data.remove(dic)
                 data_save()
                 print('Account delete successfully')
@@ -272,6 +221,9 @@ def delete_acc(dic):
                 print('Incorrect password')
     else:
         return
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def data_save():
     with open('data.json', 'w') as f:
